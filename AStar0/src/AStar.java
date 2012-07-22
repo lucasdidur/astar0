@@ -17,6 +17,7 @@ public class AStar {
     private ArrayList<Quadrado> listaAberta;
     private ArrayList<Quadrado> listaFechada;
     private ArrayList<Quadrado> listaCaminho;
+    private ArrayList<Quadrado> listaBloqueios;
 
     public AStar(Quadrado grade[][], Quadrado origem, Quadrado destino) {
         this.grade = grade;
@@ -25,21 +26,23 @@ public class AStar {
         listaAberta = new ArrayList<Quadrado>();
         listaFechada = new ArrayList<Quadrado>();
         listaCaminho = new ArrayList<Quadrado>();
+        listaBloqueios = new ArrayList<Quadrado>();
     }
 
+    //A pesquisa do A* comeca aqui
     public boolean iniciarPesquisa() {
-        if (getGrade() == null) {
+        if (getGrade() == null) {        //grade vazia
             return false;
         }
-        if (getOrigem() == getDestino()) {
+        if (getOrigem() == getDestino()) {  //a origem coincide com o destino
             return true;
         }
 
-        listaAberta.add(getOrigem());
-        if (pesquisar()) {
-            return salvarCaminho();
+        listaAberta.add(getOrigem());       //adiciona origem a lista de elementos abertos
+        if (pesquisar()) {                  //invoca metodo recursivo de pesquisa
+            return salvarCaminho();         //apos concluir pesquisa preenche listaCaminho
         }
-        return false;
+        return false;                       //nao foi possivel encontrar um caminho
     }
 
     private boolean pesquisar() {
@@ -51,8 +54,8 @@ public class AStar {
             }
         }
 
-        listaFechada.add(corrente); //adiciona o quadrado corrente na lista fechada
-        listaAberta.remove(corrente);
+        listaFechada.add(corrente);     //move o quadrado corrente para lista fechada
+        listaAberta.remove(corrente);  
 
         if (corrente == destino) {   //encontrou
             return true;
@@ -73,7 +76,7 @@ public class AStar {
         //quadrado adjacente da direita
         if (direita < grade[0].length) {
             Quadrado adjacenteDireta = grade[direita][y];
-            if (!listaFechada.contains(adjacenteDireta)) {  //nao nao for bloqueio e nao estiver na lista fechada
+            if (!listaFechada.contains(adjacenteDireta) && !listaBloqueios.contains(adjacenteDireta)) {  //nao nao for bloqueio e nao estiver na lista fechada
                 int custoG = corrente.getCustoG() + 1;      //calcula custo G - soma 1
                 int custoH = Math.abs(destino.getX() - adjacenteDireta.getX()) + //calcula custo H
                         Math.abs(destino.getY() - adjacenteDireta.getY());       //de forma heuristica
@@ -94,9 +97,9 @@ public class AStar {
         }
 
         //quadrado adjacente da esquerda
-        if (esquerda > 0) {
+        if (esquerda >= 0) {
             Quadrado adjacenteEsquerda = getGrade()[esquerda][y];
-            if (!listaFechada.contains(adjacenteEsquerda)) {  //nao nao for bloqueio e nao estiver na lista fechada
+            if (!listaFechada.contains(adjacenteEsquerda) && !listaBloqueios.contains(adjacenteEsquerda)) {  //nao nao for bloqueio e nao estiver na lista fechada
                 int custoG = corrente.getCustoG() + 1;      //calcula custo G - soma 1
                 int custoH = Math.abs(getDestino().getX() - adjacenteEsquerda.getX()) + //calcula custo H
                         Math.abs(getDestino().getY() - adjacenteEsquerda.getY());       //de forma heuristica
@@ -117,9 +120,9 @@ public class AStar {
         }
 
         //quadrado adjacente de cima
-        if (acima > 0) {
+        if (acima >= 0) {
             Quadrado adjacenteAcima = getGrade()[x][acima];
-            if (!listaFechada.contains(adjacenteAcima)) {  //nao nao for bloqueio e nao estiver na lista fechada
+            if (!listaFechada.contains(adjacenteAcima) && !listaBloqueios.contains(adjacenteAcima)) {  //nao nao for bloqueio e nao estiver na lista fechada
                 int custoG = corrente.getCustoG() + 1;      //calcula custo G - soma 1
                 int custoH = Math.abs(getDestino().getX() - adjacenteAcima.getX()) + //calcula custo H
                         Math.abs(getDestino().getY() - adjacenteAcima.getY());       //de forma heuristica
@@ -142,7 +145,7 @@ public class AStar {
         //quadrado adjacente abaixo
         if (abaixo < grade.length) {
             Quadrado adjacenteAbaixo = grade[x][abaixo];
-            if (!listaFechada.contains(adjacenteAbaixo)) {  //nao nao for bloqueio e nao estiver na lista fechada
+            if (!listaFechada.contains(adjacenteAbaixo) && !listaBloqueios.contains(adjacenteAbaixo)) {  //nao nao for bloqueio e nao estiver na lista fechada
                 int custoG = corrente.getCustoG() + 1;      //calcula custo G - soma 1
                 int custoH = Math.abs(getDestino().getX() - adjacenteAbaixo.getX()) + //calcula custo H
                         Math.abs(getDestino().getY() - adjacenteAbaixo.getY());       //de forma heuristica
@@ -169,6 +172,7 @@ public class AStar {
         return pesquisar();     //pesquisa recursivamente
     }
 
+    //retorna do destino ate origem salvando o caminho
     private boolean salvarCaminho() {
         Quadrado corrente = getDestino();
 
@@ -176,15 +180,16 @@ public class AStar {
             return false;
         }
 
-        do {
+        while(corrente != null) {
             listaCaminho.add(corrente);
-        } while (corrente.getPai() != null);
+            corrente = corrente.getPai();
+        }
         return true;
 
     }
     
-    public void setBloqueio(Quadrado bloqueio) {
-        listaFechada.add(bloqueio);
+    public void addBloqueio(Quadrado bloqueio) {
+        listaBloqueios.add(bloqueio);
     }
 
     //getters e setters
@@ -215,5 +220,8 @@ public class AStar {
     public ArrayList<Quadrado> getListaCaminho() {
         return listaCaminho;
     }
-    
+
+    public ArrayList<Quadrado> getListaBloqueios() {
+        return listaBloqueios;
+    }
 }
